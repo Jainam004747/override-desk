@@ -1,0 +1,7 @@
+# Who can do what. In a real deployment this comes from the identity provider (AD groups).
+users:
+  priya:  [requester]            # business data steward, raises override requests
+  marc:   [requester, approver]  # finance controller: can raise and approve overrides, never both on the same one
+  sofia:  [approver, file_owner] # asset manager, owns the capex budget file
+  jainam: [operator]             # data team, applies overrides and loads files
+  li:     [submitter]            # property accountant, sends the manual budget file

@@ -1,0 +1,12 @@
+# Manual files we accept, and the rules each one must pass before it's loaded.
+capex_budget:
+  description: Monthly capital expenditure budget per property, prepared in Excel by asset management.
+  file_pattern: 'capex_budget_(?P<month>\d{4}-\d{2})_v(?P<version>\d+)\.csv'
+  owner: sofia                  # must approve the file before it can be loaded
+  submit_by_day: 5              # due by the 5th of the month it's for (UTC)
+  control_file: true            # a .ctl file with row_count and amount_total must come with it
+  columns:
+    property_id: {type: varchar, required: true, pattern: 'P\d{3}'}
+    cost_code:   {type: varchar, required: true, allowed: [ROOF, HVAC, ELEV, PARK, LOBBY, OTHER]}
+    amount:      {type: decimal, required: true, min: 0, max: 5000000}
+    comment:     {type: varchar, required: false}

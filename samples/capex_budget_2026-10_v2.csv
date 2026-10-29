@@ -1,0 +1,8 @@
+property_id,cost_code,amount,comment
+P001,ROOF,185000.00,"Membrane replacement, north wing"
+P001,HVAC2,42500.00,
+P002,ELEV,96000.00,Modernisation phase 2
+P003,PARK,-31250.50,Line painting and lighting
+P004,LOBBY,58900.00,
+P05,HVAC,120400.00,Chiller
+P006,OTHER,7800.00,Signage
