@@ -327,6 +327,15 @@ evidence/2026-10/
 - **Problems are reported all at once.** Rejecting a file for its first error and then its second wastes the sender's morning.
 - **DuckDB and YAML.** Easy to run anywhere. In a real setup the same rules would sit in front of a warehouse table, and roles would come from AD groups.
 
+## What I learned
+
+- **Separation of duties is easy to say and easy to get wrong.** Checking roles wasn't enough: someone can hold both requester and approver roles, so the rule has to compare people on each specific override, not just roles.
+- **Never edit the source to fix it.** Keeping overrides as a layer on top of the original data means every reported number can be explained, and undoing a change is one command instead of a restore.
+- **Log the refusals.** At first I only logged successful actions. Then the evidence pack couldn't show that the controls had ever stopped anything. Refused attempts turned out to be the most useful part of it.
+- **Validate the file the way the sender thinks.** Rejecting a spreadsheet at the first error means three round trips by email. Listing every problem with its line number lets the sender fix it once.
+- **Check the file again at load time.** Approving a file and loading it are separate moments. Comparing the SHA-256 at load stops a file being edited after it was approved.
+- **A hash chain is simple and catches a lot.** Each audit entry storing the previous entry's hash took about forty lines, and it pinpoints exactly which entry was changed.
+
 ## Limitations
 
 - `--as` is trust-based. A real deployment needs an actual login so the recorded user can't be typed in.
