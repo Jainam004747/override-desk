@@ -121,7 +121,7 @@ def approve(con, roles, contracts, user, iid):
     except NotAllowed as e:
         audit.record(con, user, "intake.approve.refused", f"intake#{iid}", {"reason": str(e)})
         raise
-    con.execute("update intake set status = 'approved', approved_by = ?, approved_at = now() where intake_id = ?", [user, iid])
+    con.execute("update intake set status = 'approved', approved_by = ?, approved_at = timezone('UTC', now()) where intake_id = ?", [user, iid])
     audit.record(con, user, "intake.approved", f"intake#{iid}")
 
 
@@ -143,7 +143,7 @@ def load(con, roles, contracts, user, iid, path: Path):
     got_rows, got_total = con.execute("select count(*), sum(amount) from capex_budget where intake_id = ?", [iid]).fetchone()
     rec = f"rows {got_rows}/{rows}, total {got_total}/{total}"
     ok = got_rows == rows and got_total == total
-    con.execute("update intake set status = ?, loaded_by = ?, loaded_at = now(), reconciliation = ? where intake_id = ?",
+    con.execute("update intake set status = ?, loaded_by = ?, loaded_at = timezone('UTC', now()), reconciliation = ? where intake_id = ?",
                 ["loaded" if ok else "load_failed", user, ("matched: " if ok else "MISMATCH: ") + rec, iid])
     audit.record(con, user, "intake.loaded" if ok else "intake.load.mismatch", f"intake#{iid}", {"reconciliation": rec})
     return ok, rec

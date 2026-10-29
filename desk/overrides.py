@@ -35,7 +35,7 @@ def request(con, roles, user, property_id, month, line_item, new_value, reason, 
         audit.record(con, user, "override.request.refused", f"{property_id}/{month}/{line_item}", {"reason": str(e)})
         raise
     oid = con.execute("""insert into overrides (property_id, month, line_item, old_value, new_value, reason, ticket,
-                         status, requested_by, requested_at) values (?, ?, ?, ?, ?, ?, ?, 'requested', ?, now())
+                         status, requested_by, requested_at) values (?, ?, ?, ?, ?, ?, ?, 'requested', ?, timezone('UTC', now()))
                          returning override_id""",
                       [property_id, month, line_item, row[0], value, reason, ticket, user]).fetchone()[0]
     audit.record(con, user, "override.requested", f"override#{oid}",
@@ -61,7 +61,7 @@ def approve(con, roles, user, oid):
     except NotAllowed as e:
         audit.record(con, user, "override.approve.refused", f"override#{oid}", {"reason": str(e)})
         raise
-    con.execute("update overrides set status = 'approved', approved_by = ?, approved_at = now() where override_id = ?", [user, oid])
+    con.execute("update overrides set status = 'approved', approved_by = ?, approved_at = timezone('UTC', now()) where override_id = ?", [user, oid])
     audit.record(con, user, "override.approved", f"override#{oid}")
 
 
@@ -70,7 +70,7 @@ def reject(con, roles, user, oid, reason):
     status, requested_by, *_ = _get(con, oid)
     if status != "requested":
         raise NotAllowed(f"override #{oid} is {status}")
-    con.execute("update overrides set status = 'rejected', approved_by = ?, approved_at = now(), validation = ? where override_id = ?",
+    con.execute("update overrides set status = 'rejected', approved_by = ?, approved_at = timezone('UTC', now()), validation = ? where override_id = ?",
                 [user, f"rejected: {reason}", oid])
     audit.record(con, user, "override.rejected", f"override#{oid}", {"reason": reason})
 
@@ -95,7 +95,7 @@ def apply(con, roles, user, oid):
         notes.append(f"large change: {((new - old) / abs(old)):+.0%}")
     validation = "; ".join(notes)
     before = con.execute("select sum(amount) from noi_actuals_final where month = ?", [month]).fetchone()[0]
-    con.execute("update overrides set status = 'applied', applied_by = ?, applied_at = now(), validation = ? where override_id = ?",
+    con.execute("update overrides set status = 'applied', applied_by = ?, applied_at = timezone('UTC', now()), validation = ? where override_id = ?",
                 [user, validation, oid])
     after = con.execute("select sum(amount) from noi_actuals_final where month = ?", [month]).fetchone()[0]
     # The report total must move by exactly the override's delta and nothing else.
